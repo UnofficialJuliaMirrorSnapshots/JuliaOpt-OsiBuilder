@@ -1,0 +1,40 @@
+language: julia
+os:
+  - linux
+julia:
+  - 0.7
+notifications:
+  email: false
+git:
+  depth: 99999999
+cache:
+  timeout: 1000
+  directories:
+    - downloads
+env:
+  global:
+    - BINARYBUILDER_DOWNLOADS_CACHE=downloads
+    - BINARYBUILDER_AUTOMATIC_APPLE=true
+sudo: required
+
+# Before anything else, get the latest versions of things
+before_script:
+  - julia -e 'using Pkg; Pkg.add(PackageSpec(name="BinaryProvider", url="https://github.com/JuliaPackaging/BinaryProvider.jl"))'
+  - julia -e 'using Pkg; Pkg.add(PackageSpec(name="BinaryBuilder", url="https://github.com/JuliaPackaging/BinaryBuilder.jl")); Pkg.build()'
+
+script:
+  - julia build_tarballs.jl
+
+
+deploy:
+    provider: releases
+    api_key:
+        # Note; this api_key is only valid for JuliaOpt/OsiBuilder; you need
+        # to make your own: https://docs.travis-ci.com/user/deployment/releases/
+        secure: qs3UZA2hhULTi+wQ7B5W9V2H3JqF637PqJPnbsJnKZPEXrXQmuIjDR704NxMLyt/z2ulFD34f9nP0ZY6Z7CXTBCeAOCj2Eoq3TNSlwX9EBypTqf+9iCB5gLNC9XojSN91n1pa7WRmJ7BIq94TPYUjsZYHK4qUP631mMumtew6e9H2iCbaSDi6k4uQbvII+ucQkZomcSHKx7pNEZVBHvDqvRXu6MDVeql1WTnJR1Imd1dRm0WSri4Ux2ZgqdHIb4p1/13NJmDEpPJ0lL+y5STdcwy7SFH+6LJRIkrCuEhrI0DujBmAURf0eZjUojVwjAJZiQZKNJt0ZebLd4/r/T/Q0oRlk4z1ECljSVKD6U2qGrXS5VxB3O9fInXhKACrXKrpnlEAw1rdtXrH/sqiDP/5EXcl4GgdqBaUt4/UoRnGURhkvOTHi7a0HVN8H7g4PtAF0u8Oak+AJBUh2V3ZcShFQ27svmLu6E9GCqU//Z9FgZtYRqB22Hg9O9PWeeURI5QIYG0v9UCnp5myo10HN/dHKwidqM0z29DpqSlKif5d2+/2xQyc8iX2wC1ZmiQnPhL4jr7jSvDAaVoS5hb+Yns2Biin5wVXvP7Y9xnMtA1vqG90YSmTjbCvdfD2hBr37//g4eioNa0wS0CGefke0JJaNH243mNZb9KPXhIMlQ/GR0=
+    file_glob: true
+    file: products/*
+    skip_cleanup: true
+    on:
+        repo: JuliaOpt/OsiBuilder
+        tags: true
